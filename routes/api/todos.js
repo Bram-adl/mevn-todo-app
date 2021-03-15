@@ -6,12 +6,17 @@ const router = express.Router();
 
 const url = 'mongodb://localhost:27017/mevn_todo_app';
 async function todosCollection() {
-    const client = await mongodb.MongoClient.connect(url, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    });
-
-    return client.db('mevn_todo_app').collection('todos');
+    try {
+        const client = await mongodb.MongoClient.connect(url, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+    
+        return client.db('mevn_todo_app').collection('todos');
+    }
+    catch (error) {
+        console.log(error);
+    }
 };
 
 // REST API Resource
@@ -30,6 +35,20 @@ router.post('/', async (req, res) => {
         editing: req.body.editing,
         created_at: new Date(),
         updated_at: new Date(),
+    });
+    res.status(201).send(todo);
+});
+
+router.put('/:id', async (req, res) => {
+    const collection = await todosCollection();
+    const todo = await collection.updateOne({ _id: new mongodb.ObjectID(req.params.id) }, {
+        $set: {
+            title: req.body.title,
+            completed: req.body.completed,
+            editing: req.body.editing,
+            created_at: req.body.created_at,
+            updated_at: req.body.updated_at,
+        }
     });
     res.status(201).send(todo);
 });
